@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scheduler-deployment
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: scheduler
+  template:
+    metadata:
+      labels:
+        app: scheduler
+    spec:
+      serviceAccountName: scheduler-service-account
+      containers:
+        - name: scheduler-container
+          image: mowassmer/task4:1.0.0 # Replace with your actual image
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORKLOAD_SCHEDULING_PERIOD
+              value: "60" # Default scheduling period in seconds
+          resources:
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+            requests:
+              memory: "64Mi"
+              cpu: "250m"

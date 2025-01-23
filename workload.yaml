@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simulated-workload
+  labels:
+    app: workload-simulation
+spec:
+  containers:
+  - name: workload-container
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep $((RANDOM % 121 + 60))"]
+  restartPolicy: Never

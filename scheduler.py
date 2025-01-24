@@ -7,7 +7,13 @@ import kopf
 from kubernetes import client, config
 
 # Load Kubernetes config
-config.load_kube_config()
+#config.load_kube_config()
+#config.load_incluster_config()
+
+# Load the admin kubeconfig file
+KUBECONFIG_PATH = os.getenv("KUBECONFIG", "~/.kube/config")  # Default path to kubeconfig
+config.load_kube_config(config_file=os.path.expanduser(KUBECONFIG_PATH))
+print(f"Using kubeconfig from: {KUBECONFIG_PATH}")
 
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"

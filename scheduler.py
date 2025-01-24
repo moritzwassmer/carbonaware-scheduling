@@ -5,6 +5,7 @@ import requests
 import yaml
 import kopf
 from kubernetes import client, config
+import sys
 
 print("Scheduler is running")
 
@@ -27,7 +28,7 @@ CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/ro
 WORKLOAD_TEMPLATE = "workload.yaml"
 
 # Configurable environment variable for scheduling period
-SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 60)) # TODO need to set the env variable in dockerfile
+SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10)) # TODO need to set the env variable in dockerfile
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
@@ -98,7 +99,7 @@ def main():
     api = client.CoreV1Api()
     pod_template = load_workload_template()
     
-    for i in range(0,30):
+    for i in range(0,180):
         print("Fetching carbon intensity data...")
         carbon_data = fetch_carbon_intensity()
         if not carbon_data:
@@ -116,6 +117,7 @@ def main():
         print(f"Best node selected: {best_node}")
         schedule_workload(api, pod_template, best_node)
         time.sleep(SCHEDULING_PERIOD)
+    sys.exit(0)
 
 # Kopf handler for observing pod placement
 @kopf.on.event("", "v1", "pods")

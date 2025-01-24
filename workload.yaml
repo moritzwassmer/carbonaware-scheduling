@@ -8,5 +8,5 @@ spec:
   containers:
   - name: workload-container
     image: busybox
-    command: ["/bin/sh", "-c", "sleep $((RANDOM % 121 + 60))"]
+    command: ["/bin/sh", "-c", "sleep $((RANDOM % 21 + 40))"]
   restartPolicy: Never

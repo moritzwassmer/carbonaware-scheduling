@@ -20,7 +20,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: WORKLOAD_SCHEDULING_PERIOD
-              value: "60" # Default scheduling period in seconds
+              value: "10" # Default scheduling period in seconds
           resources:
             limits:
               memory: "128Mi"

@@ -8,12 +8,17 @@ from kubernetes import client, config
 
 # Load Kubernetes config
 #config.load_kube_config()
-#config.load_incluster_config()
+config.load_incluster_config()
 
 # Load the admin kubeconfig file
-KUBECONFIG_PATH = os.getenv("KUBECONFIG", "~/.kube/config")  # Default path to kubeconfig
-config.load_kube_config(config_file=os.path.expanduser(KUBECONFIG_PATH))
-print(f"Using kubeconfig from: {KUBECONFIG_PATH}")
+#KUBECONFIG_PATH = "~/.kube/config" #os.getenv("KUBECONFIG", "~/.kube/config")  # Default path to kubeconfig
+#print(f"Using kubeconfig from: {KUBECONFIG_PATH}")
+#config.load_kube_config(config_file=os.path.expanduser(KUBECONFIG_PATH))
+# /etc/kubernetes/kubelet.conf
+# $HOME/.kube/config
+# ~/.kube/config linux path
+# %USERPROFILE%\.kube\config windows path
+
 
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"

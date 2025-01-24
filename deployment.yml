@@ -16,7 +16,7 @@ spec:
       serviceAccountName: scheduler-service-account
       containers:
         - name: scheduler-container
-          image: mowassmer/task4:1.0.0 # Replace with your actual image
+          image: mowassmer/task4:1.0.1 # Replace with your actual image
           imagePullPolicy: IfNotPresent
           env:
             - name: WORKLOAD_SCHEDULING_PERIOD

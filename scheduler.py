@@ -31,9 +31,9 @@ SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 60)) # TODO need
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
-    "node-1": "DE", # region-a
-    "node-2": "ERCOT",
-    "node-3": "NL",
+    "kind-worker": "DE",
+    "kind-worker2": "ERCOT",
+    "kind-worker3": "NL",
 }
 
 # Load workload template

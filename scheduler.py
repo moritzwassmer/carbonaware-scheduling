@@ -6,6 +6,8 @@ import yaml
 import kopf
 from kubernetes import client, config
 
+print("Scheduler is running")
+
 # Load Kubernetes config
 #config.load_kube_config()
 config.load_incluster_config()

@@ -4,28 +4,28 @@ import time
 import requests
 import yaml
 import kopf
+import logging
 from kubernetes import client, config
 import sys
 from datetime import datetime
 
-print("Scheduler is running")
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler("scheduler.log"),
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
+print("Scheduler is running")
+# For debugging purposes
 current_time = datetime.now().strftime("%H:%M")
 print(f"Current time: {current_time}")
 
 # Load Kubernetes config
-#config.load_kube_config()
 config.load_incluster_config()
-
-# Load the admin kubeconfig file
-#KUBECONFIG_PATH = "~/.kube/config" #os.getenv("KUBECONFIG", "~/.kube/config")  # Default path to kubeconfig
-#print(f"Using kubeconfig from: {KUBECONFIG_PATH}")
-#config.load_kube_config(config_file=os.path.expanduser(KUBECONFIG_PATH))
-# /etc/kubernetes/kubelet.conf
-# $HOME/.kube/config
-# ~/.kube/config linux path
-# %USERPROFILE%\.kube\config windows path
-
 
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"
@@ -48,7 +48,7 @@ def load_workload_template():
         return yaml.safe_load(file)
 
 # Fetch carbon intensity data
-def fetch_carbon_intensity():
+def fetch_carbon_intensity(): # e.g. {"DE": 476.86, "ERCOT": 288.29, "NL": 266.5}
     try:
         response = requests.get(CARBON_API_URL, timeout=10)
         response.raise_for_status()
@@ -66,10 +66,10 @@ def select_best_node(carbon_data):
         if intensity < lowest_intensity:
             lowest_intensity = intensity
             best_node = node
-    return best_node
+    return best_node, lowest_intensity
 
 # Schedule workload to Kubernetes
-def schedule_workload(api, pod_spec, node):
+def schedule_workload(api, pod_spec, node, intensity, region):
     unique_name = f"workload-{int(time.time())}"
     pod_spec["metadata"]["name"] = unique_name
     pod_spec["spec"]["affinity"] = {
@@ -91,20 +91,24 @@ def schedule_workload(api, pod_spec, node):
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
     print(f"Scheduled workload: {unique_name} to node: {node}")
+    logging.info(f"%s, SUG, %.2f, %s", unique_name, intensity, region)
 
 # Monitor pod placement
 def monitor_pod_placement(event, **kwargs):
     pod = event.get("object")
     pod_name = pod.metadata.name
     node_name = pod.spec.node_name
+    region = NODE_REGION_MAPPING.get(node_name, "Unknown")
+    intensity = fetch_carbon_intensity().get(region, float("inf"))
     print(f"Pod {pod_name} placed on node {node_name}")
+    logging.info(f"%s, ACT, %.2f, %s", pod_name, intensity, region)
 
 # Main loop
 def main():
     api = client.CoreV1Api()
     pod_template = load_workload_template()
-    
-    for i in range(0,NUM_WORKLOADS):
+
+    for i in range(NUM_WORKLOADS):
         print(f"Workload {i+1}/{NUM_WORKLOADS}")
         print("Fetching carbon intensity data...")
         carbon_data = fetch_carbon_intensity()
@@ -114,15 +118,22 @@ def main():
             continue
 
         print("Selecting the best node...")
-        best_node = select_best_node(carbon_data)
+        best_node, lowest_intensity = select_best_node(carbon_data)
         if not best_node:
             print("No suitable node found. Skipping scheduling.")
             time.sleep(SCHEDULING_PERIOD)
             continue
 
+        region = NODE_REGION_MAPPING[best_node]
         print(f"Best node selected: {best_node}")
-        schedule_workload(api, pod_template, best_node)
+        schedule_workload(api, pod_template, best_node, lowest_intensity, region)
+        print("\n")
         time.sleep(SCHEDULING_PERIOD)
+
+
+    # Wait for the last pod placement to occur, keep pod alive to be able to kubectl cp logs, 
+    # copy like kubectl cp scheduler-job-jgqrv:/app/scheduler.log results/scheduler.log
+    time.sleep(3600) # 1 hour
     sys.exit(0)
 
 # Kopf handler for observing pod placement

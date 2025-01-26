@@ -1,26 +1,20 @@
-apiVersion: batch/v1
-kind: Job
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: scheduler-job
+  name: kopfexample-operator
 spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      application: kopfexample-operator
   template:
     metadata:
       labels:
-        app: scheduler
+        application: kopfexample-operator
     spec:
-      serviceAccountName: scheduler-service-account
+      serviceAccountName: kopfexample-account
       containers:
-        - name: scheduler-container
-          image: mowassmer/task4:1.0.1 # Replace with your actual image
-          imagePullPolicy: Always #IfNotPresent
-          env:
-            - name: WORKLOAD_SCHEDULING_PERIOD
-              value: "10" # Default scheduling period in seconds
-          resources:
-            limits:
-              memory: "128Mi"
-              cpu: "500m"
-            requests:
-              memory: "64Mi"
-              cpu: "250m"
-      restartPolicy: Never
+      - name: the-only-one
+        image: mowassmer/task4:1.0.2

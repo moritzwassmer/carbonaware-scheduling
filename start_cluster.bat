@@ -1,7 +1,7 @@
 :: clean up docker state
-FOR /f "tokens=*" %i IN ('docker ps -q') DO docker stop %i :: stop all running containers
-FOR /f "tokens=*" %i IN ('docker ps -a') DO docker rm %i :: remove all containers
-FOR /f "tokens=*" %i in ('docker images kindest/node -q') DO docker rmi %i :: remove all kind images
+::FOR /f "tokens=*" %i IN ('docker ps -q') DO docker stop %i :: stop all running containers
+::FOR /f "tokens=*" %i IN ('docker ps -a') DO docker rm %i :: remove all containers
+::FOR /f "tokens=*" %i in ('docker images kindest/node -q') DO docker rmi %i :: remove all kind images
 
 :: start kind
 cd C:\Users\morit\kind

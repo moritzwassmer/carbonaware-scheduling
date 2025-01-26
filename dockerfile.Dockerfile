@@ -15,4 +15,4 @@ RUN pip install kubernetes kopf requests pyyaml
 # EXPOSE 8080
 
 # Set the default command to run the scheduler
-CMD ["python", "scheduler.py"]
+CMD kopf run /app/scheduler.py --verbose

@@ -6,8 +6,12 @@ import yaml
 import kopf
 from kubernetes import client, config
 import sys
+from datetime import datetime
 
 print("Scheduler is running")
+
+current_time = datetime.now().strftime("%H:%M")
+print(f"Current time: {current_time}")
 
 # Load Kubernetes config
 #config.load_kube_config()
@@ -26,9 +30,10 @@ config.load_incluster_config()
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"
 WORKLOAD_TEMPLATE = "workload.yaml"
+NUM_WORKLOADS = 2 # TODO set to 180 later
 
 # Configurable environment variable for scheduling period
-SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10)) # TODO need to set the env variable in dockerfile
+SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
@@ -99,7 +104,8 @@ def main():
     api = client.CoreV1Api()
     pod_template = load_workload_template()
     
-    for i in range(0,180):
+    for i in range(0,NUM_WORKLOADS):
+        print(f"Workload {i+1}/{NUM_WORKLOADS}")
         print("Fetching carbon intensity data...")
         carbon_data = fetch_carbon_intensity()
         if not carbon_data:

@@ -1,13 +1,8 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: scheduler-deployment
-  namespace: default
+  name: scheduler-job
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: scheduler
   template:
     metadata:
       labels:
@@ -17,7 +12,7 @@ spec:
       containers:
         - name: scheduler-container
           image: mowassmer/task4:1.0.1 # Replace with your actual image
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always #IfNotPresent
           env:
             - name: WORKLOAD_SCHEDULING_PERIOD
               value: "10" # Default scheduling period in seconds
@@ -28,3 +23,4 @@ spec:
             requests:
               memory: "64Mi"
               cpu: "250m"
+      restartPolicy: Never

@@ -9,20 +9,26 @@ from kubernetes import client, config
 import sys
 from datetime import datetime
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("scheduler.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+# Create a dedicated logger
+logger = logging.getLogger("scheduler")
+logger.setLevel(logging.INFO)
 
-print("Scheduler is running")
+# Create file and stream handlers
+file_handler = logging.FileHandler("scheduler.log")
+stream_handler = logging.StreamHandler(sys.stdout)
+
+# Set formatter and add handlers to the logger
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+
+logger.info("Scheduler is starting...")
 # For debugging purposes
 current_time = datetime.now().strftime("%H:%M")
-print(f"Current time: {current_time}")
+logger.info(f"Current time: {current_time}")
 
 # Load Kubernetes config
 config.load_incluster_config()
@@ -30,7 +36,7 @@ config.load_incluster_config()
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"
 WORKLOAD_TEMPLATE = "workload.yaml"
-NUM_WORKLOADS = 2 # TODO set to 180 later
+NUM_WORKLOADS = 2  # TODO set to 180 later
 
 # Configurable environment variable for scheduling period
 SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
@@ -48,13 +54,13 @@ def load_workload_template():
         return yaml.safe_load(file)
 
 # Fetch carbon intensity data
-def fetch_carbon_intensity(): # e.g. {"DE": 476.86, "ERCOT": 288.29, "NL": 266.5}
+def fetch_carbon_intensity():  # e.g., {"DE": 476.86, "ERCOT": 288.29, "NL": 266.5}
     try:
         response = requests.get(CARBON_API_URL, timeout=10)
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        print(f"Error fetching carbon intensity: {e}")
+        logger.error(f"Error fetching carbon intensity: {e}")
         return None
 
 # Select the best node based on carbon intensity
@@ -90,8 +96,7 @@ def schedule_workload(api, pod_spec, node, intensity, region):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    print(f"Scheduled workload: {unique_name} to node: {node}")
-    logging.info(f"%s, SUG, %.2f, %s", unique_name, intensity, region)
+    logger.info(f"Scheduled workload: {unique_name} to node: {node}, Intensity: {intensity}, Region: {region}")
 
 # Monitor pod placement
 def monitor_pod_placement(event, **kwargs):
@@ -100,45 +105,36 @@ def monitor_pod_placement(event, **kwargs):
     node_name = pod.spec.node_name
     region = NODE_REGION_MAPPING.get(node_name, "Unknown")
     intensity = fetch_carbon_intensity().get(region, float("inf"))
-    print(f"Pod {pod_name} placed on node {node_name}")
-    logging.info(f"%s, ACT, %.2f, %s", pod_name, intensity, region)
+    logger.info(f"Pod {pod_name} placed on node {node_name}, Intensity: {intensity}, Region: {region}")
 
 # Main loop
-#@kopf.on.event("", "v1", "kopfexample-operator")
-#@kopf.on.create("", "v1", "deployments")
-#def main(event, **kwargs):
-#@kopf.on.event("", "v1", "pods")
 def main():
     time.sleep(10)
     api = client.CoreV1Api()
     pod_template = load_workload_template()
 
     for i in range(NUM_WORKLOADS):
-        print(f"Workload {i+1}/{NUM_WORKLOADS}")
-        print("Fetching carbon intensity data...")
+        logger.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
         carbon_data = fetch_carbon_intensity()
         if not carbon_data:
-            print("Skipping scheduling due to missing data.")
+            logger.warning("Skipping scheduling due to missing carbon intensity data.")
             time.sleep(SCHEDULING_PERIOD)
             continue
 
-        print("Selecting the best node...")
         best_node, lowest_intensity = select_best_node(carbon_data)
         if not best_node:
-            print("No suitable node found. Skipping scheduling.")
+            logger.warning("No suitable node found. Skipping scheduling.")
             time.sleep(SCHEDULING_PERIOD)
             continue
 
         region = NODE_REGION_MAPPING[best_node]
-        print(f"Best node selected: {best_node}")
+        logger.info(f"Best node selected: {best_node}")
         schedule_workload(api, pod_template, best_node, lowest_intensity, region)
-        print("\n")
         time.sleep(SCHEDULING_PERIOD)
 
-
-    # Wait for the last pod placement to occur, keep pod alive to be able to kubectl cp logs, 
-    # copy like kubectl cp scheduler-job-jgqrv:/app/scheduler.log results/scheduler.log
-    time.sleep(3600) # 1 hour
+    # Wait for the last pod placement to occur, keep pod alive to allow log access
+    logger.info("All workloads scheduled. Waiting to allow log retrieval...")
+    time.sleep(3600)  # 1 hour
     sys.exit(0)
 
 # Kopf handler for observing pod placement
@@ -147,9 +143,7 @@ def observe_placement(event, **kwargs):
     if event["type"] == "ADDED":
         monitor_pod_placement(event, **kwargs)
 
-"""if __name__ == "__main__":
-    main()"""
-
+# Kopf resume/create handler
 @kopf.on.resume("", "v1", "pods")
 @kopf.on.create("", "v1", "pods")
 def on_pod_resume(name, namespace, labels, logger, **kwargs):

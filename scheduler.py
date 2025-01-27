@@ -9,26 +9,26 @@ from kubernetes import client, config
 import sys
 from datetime import datetime
 
-# Create a dedicated logger
-logger = logging.getLogger("scheduler")
-logger.setLevel(logging.INFO)
+# Create a dedicated write_logger
+write_logger = logging.getLogger("scheduler")
+write_logger.setLevel(logging.INFO)
 
 # Create file and stream handlers
 file_handler = logging.FileHandler("scheduler.log")
 stream_handler = logging.StreamHandler(sys.stdout)
 
-# Set formatter and add handlers to the logger
+# Set formatter and add handlers to the write_logger
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(formatter)
 stream_handler.setFormatter(formatter)
 
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
+write_logger.addHandler(file_handler)
+write_logger.addHandler(stream_handler)
 
-logger.info("Scheduler is starting...")
+logging.info("Scheduler is starting...")
 # For debugging purposes
 current_time = datetime.now().strftime("%H:%M")
-logger.info(f"Current time: {current_time}")
+logging.info(f"Current time: {current_time}")
 
 # Load Kubernetes config
 config.load_incluster_config()
@@ -60,7 +60,7 @@ def fetch_carbon_intensity():  # e.g., {"DE": 476.86, "ERCOT": 288.29, "NL": 266
         response.raise_for_status()
         return response.json()
     except requests.RequestException as e:
-        logger.error(f"Error fetching carbon intensity: {e}")
+        logging.error(f"Error fetching carbon intensity: {e}")
         return None
 
 # Select the best node based on carbon intensity
@@ -96,7 +96,7 @@ def schedule_workload(api, pod_spec, node, intensity, region):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    logger.info(f"Scheduled workload: {unique_name} to node: {node}, Intensity: {intensity}, Region: {region}")
+    write_logger.info(f"Pod: {unique_name} to node: {node}, Intensity: {intensity}, Region: {region}, Type: Planned")
 
 # Monitor pod placement
 def monitor_pod_placement(event, **kwargs):
@@ -105,7 +105,7 @@ def monitor_pod_placement(event, **kwargs):
     node_name = pod.spec.node_name
     region = NODE_REGION_MAPPING.get(node_name, "Unknown")
     intensity = fetch_carbon_intensity().get(region, float("inf"))
-    logger.info(f"Pod {pod_name} placed on node {node_name}, Intensity: {intensity}, Region: {region}")
+    write_logger.info(f"Pod: {pod_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: Actual")
 
 # Main loop
 def main():
@@ -114,26 +114,26 @@ def main():
     pod_template = load_workload_template()
 
     for i in range(NUM_WORKLOADS):
-        logger.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
+        logging.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
         carbon_data = fetch_carbon_intensity()
         if not carbon_data:
-            logger.warning("Skipping scheduling due to missing carbon intensity data.")
+            logging.info("Skipping scheduling due to missing carbon intensity data.")
             time.sleep(SCHEDULING_PERIOD)
             continue
 
         best_node, lowest_intensity = select_best_node(carbon_data)
         if not best_node:
-            logger.warning("No suitable node found. Skipping scheduling.")
+            logging.info("No suitable node found. Skipping scheduling.")
             time.sleep(SCHEDULING_PERIOD)
             continue
 
         region = NODE_REGION_MAPPING[best_node]
-        logger.info(f"Best node selected: {best_node}")
+        logging.info(f"Best node selected: {best_node}")
         schedule_workload(api, pod_template, best_node, lowest_intensity, region)
         time.sleep(SCHEDULING_PERIOD)
 
     # Wait for the last pod placement to occur, keep pod alive to allow log access
-    logger.info("All workloads scheduled. Waiting to allow log retrieval...")
+    logging.info("All workloads scheduled. Waiting to allow log retrieval...")
     time.sleep(3600)  # 1 hour
     sys.exit(0)
 

@@ -13,6 +13,7 @@ kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignme
 
 :: build and push image TODO do manually
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
+
 ::docker build --pull --rm --no-cache -f dockerfile.Dockerfile -t task4:1.0.1 .
 ::docker login
 ::docker image push docker.io/mowassmer/task4:1.0.1 

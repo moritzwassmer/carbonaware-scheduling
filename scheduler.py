@@ -104,7 +104,11 @@ def monitor_pod_placement(event, **kwargs):
     logging.info(f"%s, ACT, %.2f, %s", pod_name, intensity, region)
 
 # Main loop
-def main():
+#@kopf.on.event("", "v1", "kopfexample-operator")
+#@kopf.on.create("", "v1", "deployments")
+#def main(event, **kwargs):
+@kopf.on.event("", "v1", "pods")
+def main(event, **kwargs):
     api = client.CoreV1Api()
     pod_template = load_workload_template()
 
@@ -137,10 +141,8 @@ def main():
     sys.exit(0)
 
 # Kopf handler for observing pod placement
-@kopf.on.event("", "v1", "pods")
+"""@kopf.on.event("", "v1", "pods")
 def observe_placement(event, **kwargs):
     if event["type"] == "ADDED":
-        monitor_pod_placement(event, **kwargs)
+        monitor_pod_placement(event, **kwargs)"""
 
-if __name__ == "__main__":
-    main()

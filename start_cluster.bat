@@ -20,3 +20,6 @@ cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 :: apply k8s resources
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment.yml
+
+cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
+kubectl cp kopfexample-operator-5d878f47c4-lqbx8:/app/scheduler.log results/scheduler.log

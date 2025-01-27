@@ -147,5 +147,12 @@ def observe_placement(event, **kwargs):
     if event["type"] == "ADDED":
         monitor_pod_placement(event, **kwargs)
 
-if __name__ == "__main__":
-    main()
+"""if __name__ == "__main__":
+    main()"""
+
+@kopf.on.resume("", "v1", "pods")
+@kopf.on.create("", "v1", "pods")
+def on_pod_resume(name, namespace, labels, logger, **kwargs):
+    # Check if this is the scheduler pod
+    if labels.get("application") == "kopfexample-operator":
+        main()

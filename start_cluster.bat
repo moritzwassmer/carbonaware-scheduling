@@ -8,7 +8,7 @@ cd C:\Users\morit\kind
 start kind.exe
 
 :: create cluster
-kind delete cluster
+kind delete clusters --all
 kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\3_nodes_cluster_config.yml
 
 :: build and push image TODO do manually
@@ -27,3 +27,6 @@ cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 kubectl cp :/app/carbonaware_strategy.log results/carbonaware_strategy.log
 kubectl cp :/app/normal_strategy.log results/normal_strategy.log
 kubectl rollout restart deployment kopfexample-operator
+
+
+kubectl config get-contexts

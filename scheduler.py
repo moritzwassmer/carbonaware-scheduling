@@ -9,21 +9,8 @@ from kubernetes import client, config
 import sys
 from datetime import datetime
 
-# Create a dedicated write_logger
-write_logger = logging.getLogger("scheduler")
-write_logger.setLevel(logging.INFO)
 
-# Create file and stream handlers
-file_handler = logging.FileHandler("scheduler.log")
-stream_handler = logging.StreamHandler(sys.stdout)
 
-# Set formatter and add handlers to the write_logger
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
-
-write_logger.addHandler(file_handler)
-write_logger.addHandler(stream_handler)
 
 logging.info("Scheduler is starting...")
 # For debugging purposes
@@ -40,7 +27,18 @@ NUM_WORKLOADS = 2  # TODO set to 180 later
 
 # Configurable environment variable for scheduling period
 SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
-STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "carbon"))
+STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "carbonaware"))
+
+# Create a logger that writes results
+write_logger = logging.getLogger("scheduler")
+write_logger.setLevel(logging.INFO)
+file_handler = logging.FileHandler(STRATEGY+"_strategy.log")
+stream_handler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+write_logger.addHandler(file_handler)
+write_logger.addHandler(stream_handler)
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
@@ -127,9 +125,9 @@ def main():
             continue
         
         # Pick node according to strategy
-        if STRATEGY == "carbon":
+        if STRATEGY == "carbonaware":
             best_node, lowest_intensity = select_best_node(carbon_data)
-        elif STRATEGY == "random":
+        elif STRATEGY == "normal":
             best_node, lowest_intensity = random_placement(carbon_data)
         else:
             logging.error("Invalid scheduling strategy. Skipping scheduling.")

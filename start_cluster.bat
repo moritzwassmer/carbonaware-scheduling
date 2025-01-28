@@ -24,5 +24,6 @@ kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deploy
 
 :: only when necessary
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
-kubectl cp kopfexample-operator-5d878f47c4-lqbx8:/app/scheduler.log results/scheduler.log
+kubectl cp :/app/carbonaware_strategy.log results/carbonaware_strategy.log
+kubectl cp :/app/normal_strategy.log results/normal_strategy.log
 kubectl rollout restart deployment kopfexample-operator

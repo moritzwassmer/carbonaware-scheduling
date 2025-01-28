@@ -42,9 +42,9 @@ write_logger.addHandler(stream_handler)
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
-    "kind-worker": "DE",
-    "kind-worker2": "ERCOT",
-    "kind-worker3": "NL",
+    STRATEGY+"-worker": "DE",
+    STRATEGY+"-worker2": "ERCOT",
+    STRATEGY+"-worker3": "NL",
 }
 
 # Load workload template

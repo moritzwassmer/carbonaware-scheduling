@@ -96,7 +96,7 @@ def schedule_workload(api, pod_spec, node, intensity, region):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    write_logger.info(f"Pod: {unique_name} to node: {node}, Intensity: {intensity}, Region: {region}, Type: Planned")
+    write_logger.info(f"Pod: {unique_name}, Node: {node}, Intensity: {intensity}, Region: {region}, Type: Planned")
 
 # Monitor pod placement
 def monitor_pod_placement(workload_name, node_name):

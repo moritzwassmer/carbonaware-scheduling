@@ -21,7 +21,7 @@ rules:
     resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
     verbs: [create, patch, delete]
   - apiGroups: [""]  # Core API group
-    resources: [namespaces, events, pods, persistentvolumeclaims]
+    resources: [namespaces, events, pods, pods/status, persistentvolumeclaims]
     verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: [batch, extensions]
     resources: [jobs]
@@ -39,7 +39,7 @@ rules:
     resources: [kopfexamples, kopfpeerings]
     verbs: [get, list, watch, patch, create, update, delete]
   - apiGroups: [""]  # Core API group
-    resources: [events, pods, persistentvolumeclaims]
+    resources: [events, pods, pods/status, persistentvolumeclaims]
     verbs: [get, list, watch, create, update, patch, delete]
   - apiGroups: [batch, extensions]
     resources: [jobs]

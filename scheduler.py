@@ -136,35 +136,23 @@ def main():
     sys.exit(0)
 
 # Kopf handler for observing pod placement
-@kopf.on.event("", "v1", "pods")
-def observe_placement(event, **kwargs): # TODO Issue here
-    #logging.info("124421415241213, \n"+str(event)+"\n"+str(kwargs))
+@kopf.on.create("", "v1", "pods")
+def observe_placement(name, namespace, labels, logger, **kwargs): # TODO Issue here
 
-    # get pod name and node name
-    # Ensure the event has the expected structure
-    if not isinstance(event, dict) or 'object' not in event or 'kind' not in event['object']:
-        logging.error("Invalid event format")
-        return
+    # logging.info("124421415241213,\n"+str(kwargs)+"\n")
 
-    obj = event['object']
+    # Extract the workload name
+    workload_name = kwargs.get('body', {}).get('metadata', {}).get('name', None)
     
-    # Check if the object is a Pod
-    if obj['kind'] == 'Pod':
-        # Extract the workload name and nodeName if available
-        workload_name = obj.get('metadata', {}).get('name', None)
-        node_name = obj.get('spec', {}).get('nodeName', None)
-        
-        if workload_name and node_name:
-            logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
-        else:
-            logging.error("Could not extract workload name or node name")
-            return
-    else:
-        logging.info(f"Unhandled kind: {obj['kind']}")
+    # Extract the nodeName
+    node_name = kwargs.get('body', {}).get('spec', {}).get('nodeName', None)
 
+    if workload_name and node_name:
+        logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
+    else:
+        logging.error("Could not extract workload name or node name")
+        return
     monitor_pod_placement(workload_name, node_name)
-    """if event["type"] == "ADDED":
-        monitor_pod_placement(event, **kwargs)"""
 
 # Kopf resume/create handler
 @kopf.on.resume("", "v1", "pods")

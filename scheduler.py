@@ -99,13 +99,11 @@ def schedule_workload(api, pod_spec, node, intensity, region):
     write_logger.info(f"Pod: {unique_name} to node: {node}, Intensity: {intensity}, Region: {region}, Type: Planned")
 
 # Monitor pod placement
-def monitor_pod_placement(event, **kwargs):
-    pod = event.get("object")
-    pod_name = pod.metadata.name
-    node_name = pod.spec.node_name
+def monitor_pod_placement(workload_name, node_name):
+    #logging.info("124421415241213")
     region = NODE_REGION_MAPPING.get(node_name, "Unknown")
     intensity = fetch_carbon_intensity().get(region, float("inf"))
-    write_logger.info(f"Pod: {pod_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: Actual")
+    write_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: Actual")
 
 # Main loop
 def main():
@@ -139,9 +137,34 @@ def main():
 
 # Kopf handler for observing pod placement
 @kopf.on.event("", "v1", "pods")
-def observe_placement(event, **kwargs):
-    if event["type"] == "ADDED":
-        monitor_pod_placement(event, **kwargs)
+def observe_placement(event, **kwargs): # TODO Issue here
+    #logging.info("124421415241213, \n"+str(event)+"\n"+str(kwargs))
+
+    # get pod name and node name
+    # Ensure the event has the expected structure
+    if not isinstance(event, dict) or 'object' not in event or 'kind' not in event['object']:
+        logging.error("Invalid event format")
+        return
+
+    obj = event['object']
+    
+    # Check if the object is a Pod
+    if obj['kind'] == 'Pod':
+        # Extract the workload name and nodeName if available
+        workload_name = obj.get('metadata', {}).get('name', None)
+        node_name = obj.get('spec', {}).get('nodeName', None)
+        
+        if workload_name and node_name:
+            logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
+        else:
+            logging.error("Could not extract workload name or node name")
+            return
+    else:
+        logging.info(f"Unhandled kind: {obj['kind']}")
+
+    monitor_pod_placement(workload_name, node_name)
+    """if event["type"] == "ADDED":
+        monitor_pod_placement(event, **kwargs)"""
 
 # Kopf resume/create handler
 @kopf.on.resume("", "v1", "pods")

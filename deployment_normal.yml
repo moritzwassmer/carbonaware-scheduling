@@ -25,4 +25,4 @@ spec:
         - name: WORKLOAD_SCHEDULING_PERIOD
           value: "10" # Default scheduling period in seconds
         - name: SCHEDULING_STRATEGY
-          value: "carbonaware" # Default scheduling strategy carbonaware or normal 
+          value: "normal" # Default scheduling strategy carbonaware or normal 

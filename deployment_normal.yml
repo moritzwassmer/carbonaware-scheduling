@@ -21,7 +21,7 @@ spec:
         imagePullPolicy: Always #IfNotPresent
         env:
         - name: NUM_WORKLOADS
-          value: "2" # Default scheduling period in seconds
+          value: "180" # Default scheduling period in seconds
         - name: WORKLOAD_SCHEDULING_PERIOD
           value: "10" # Default scheduling period in seconds
         - name: SCHEDULING_STRATEGY

@@ -40,6 +40,7 @@ NUM_WORKLOADS = 2  # TODO set to 180 later
 
 # Configurable environment variable for scheduling period
 SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
+STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "carbon"))
 
 # Node-region mapping
 NODE_REGION_MAPPING = {
@@ -73,6 +74,12 @@ def select_best_node(carbon_data):
             lowest_intensity = intensity
             best_node = node
     return best_node, lowest_intensity
+
+def random_placement(carbon_data):
+    node = random.choice(list(NODE_REGION_MAPPING.keys()))
+    region = NODE_REGION_MAPPING[node]
+    intensity = carbon_data.get(region, float("inf"))
+    return node, intensity
 
 # Schedule workload to Kubernetes
 def schedule_workload(api, pod_spec, node, intensity, region):
@@ -115,16 +122,24 @@ def main():
         logging.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
         carbon_data = fetch_carbon_intensity()
         if not carbon_data:
-            logging.info("Skipping scheduling due to missing carbon intensity data.")
+            logging.error("Skipping scheduling due to missing carbon intensity data.")
             time.sleep(SCHEDULING_PERIOD)
             continue
-
-        best_node, lowest_intensity = select_best_node(carbon_data)
+        
+        # Pick node according to strategy
+        if STRATEGY == "carbon":
+            best_node, lowest_intensity = select_best_node(carbon_data)
+        elif STRATEGY == "random":
+            best_node, lowest_intensity = random_placement(carbon_data)
+        else:
+            logging.error("Invalid scheduling strategy. Skipping scheduling.")
+            time.sleep(SCHEDULING_PERIOD)
         if not best_node:
-            logging.info("No suitable node found. Skipping scheduling.")
+            logging.error("No suitable node found. Skipping scheduling.")
             time.sleep(SCHEDULING_PERIOD)
             continue
-
+        
+        # schedule workload
         region = NODE_REGION_MAPPING[best_node]
         logging.info(f"Best node selected: {best_node}")
         schedule_workload(api, pod_template, best_node, lowest_intensity, region)

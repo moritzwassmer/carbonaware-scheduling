@@ -21,9 +21,12 @@ kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deploy
 
 :: only when necessary
 
+cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 kubectl cp :/app/normal_strategy.log results/normal_strategy.log
 kubectl config use-context kind-carbonaware
 kubectl cp :/app/carbonaware_strategy.log results/carbonaware_strategy.log
-kubectl rollout restart deployment kopfexample-operator
 
+:: other
+kubectl rollout restart deployment kopfexample-operator
 kubectl config get-contexts
+kubectl exec --stdin --tty shell-demo -- /bin/bash :: ssh

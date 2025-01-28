@@ -19,3 +19,7 @@ spec:
       - name: the-only-one
         image: mowassmer/task4:1.0.2
         imagePullPolicy: Always #IfNotPresent
+        env: 
+        ENV NUM_WORKLOADS=2
+        ENV WORKLOAD_SCHEDULING_PERIOD=10
+        ENV SCHEDULING_STRATEGY=carbonaware

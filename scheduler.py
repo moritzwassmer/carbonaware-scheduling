@@ -23,9 +23,9 @@ config.load_incluster_config()
 # Constants
 CARBON_API_URL = "https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row"
 WORKLOAD_TEMPLATE = "workload.yaml"
-NUM_WORKLOADS = 180  # TODO set to 180 later
 
-# Configurable environment variable for scheduling period
+# Get environment variables
+NUM_WORKLOADS = int(os.getenv("NUM_WORKLOADS", 2))  # TODO set to 180 later
 SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
 STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "carbonaware"))
 

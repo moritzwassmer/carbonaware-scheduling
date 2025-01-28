@@ -11,6 +11,10 @@ COPY workload.yaml .
 # Install required Python libraries
 RUN pip install kubernetes kopf requests pyyaml
 
+ENV NUM_WORKLOADS=2
+ENV WORKLOAD_SCHEDULING_PERIOD=10
+ENV SCHEDULING_STRATEGY=carbonaware
+
 # Expose the port if needed (for debugging or future extensions)
 # EXPOSE 8080
 

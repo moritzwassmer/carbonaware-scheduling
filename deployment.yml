@@ -19,8 +19,3 @@ spec:
       - name: the-only-one
         image: mowassmer/task4:1.0.2
         imagePullPolicy: Always #IfNotPresent
-        env:
-        - name: WORKLOAD_SCHEDULING_PERIOD
-          value: "10" # Default scheduling period in seconds
-        - name: SCHEDULING_STRATEGY
-          value: "normal" # Default scheduling strategy carbonaware or normal

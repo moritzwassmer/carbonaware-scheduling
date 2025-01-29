@@ -3,16 +3,16 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   namespace: "default"
-  name: kopfexample-account
+  name: scheduler-account
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: kopfexample-role-cluster
+  name: scheduler-role-cluster
 rules:
   # Framework and application permissions
   - apiGroups: [kopf.dev]
-    resources: [clusterkopfpeerings, kopfexamples, kopfpeerings]
+    resources: [clusterkopfpeerings, schedulers, kopfpeerings]
     verbs: [get, list, watch, patch, create, update, delete]
   - apiGroups: [apiextensions.k8s.io]
     resources: [customresourcedefinitions]
@@ -32,11 +32,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   namespace: "default"
-  name: kopfexample-role-namespaced
+  name: scheduler-role-namespaced
 rules:
   # Namespaced-specific permissions
   - apiGroups: [kopf.dev]
-    resources: [kopfexamples, kopfpeerings]
+    resources: [schedulers, kopfpeerings]
     verbs: [get, list, watch, patch, create, update, delete]
   - apiGroups: [""]  # Core API group
     resources: [events, pods, pods/status, persistentvolumeclaims]
@@ -49,25 +49,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: kopfexample-rolebinding-cluster
+  name: scheduler-rolebinding-cluster
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: kopfexample-role-cluster
+  name: scheduler-role-cluster
 subjects:
   - kind: ServiceAccount
-    name: kopfexample-account
+    name: scheduler-account
     namespace: "default"
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   namespace: "default"
-  name: kopfexample-rolebinding-namespaced
+  name: scheduler-rolebinding-namespaced
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: kopfexample-role-namespaced
+  name: scheduler-role-namespaced
 subjects:
   - kind: ServiceAccount
-    name: kopfexample-account
+    name: scheduler-account

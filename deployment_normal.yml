@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: kopfexample-operator
+  name: scheduler-operator
   labels:
-    application: kopfexample-operator
+    application: scheduler-operator
 spec:
-  serviceAccountName: kopfexample-account
+  serviceAccountName: scheduler-account
   containers:
   - name: the-only-one
     image: mowassmer/task4:1.0.2

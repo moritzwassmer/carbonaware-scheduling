@@ -1,28 +1,19 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Pod
 metadata:
   name: kopfexample-operator
+  labels:
+    application: kopfexample-operator
 spec:
-  replicas: 1
-  strategy:
-    type: Recreate
-  selector:
-    matchLabels:
-      application: kopfexample-operator
-  template:
-    metadata:
-      labels:
-        application: kopfexample-operator
-    spec:
-      serviceAccountName: kopfexample-account
-      containers:
-      - name: the-only-one
-        image: mowassmer/task4:1.0.2
-        imagePullPolicy: Always #IfNotPresent
-        env:
-        - name: NUM_WORKLOADS
-          value: "180" # Default scheduling period in seconds
-        - name: WORKLOAD_SCHEDULING_PERIOD
-          value: "10" # Default scheduling period in seconds
-        - name: SCHEDULING_STRATEGY
-          value: "carbonaware" # Default scheduling strategy carbonaware or normal 
+  serviceAccountName: kopfexample-account
+  containers:
+  - name: the-only-one
+    image: mowassmer/task4:1.0.2
+    imagePullPolicy: Always
+    env:
+    - name: NUM_WORKLOADS
+      value: "180"
+    - name: WORKLOAD_SCHEDULING_PERIOD
+      value: "10"
+    - name: SCHEDULING_STRATEGY
+      value: "carbonaware"

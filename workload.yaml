@@ -7,6 +7,12 @@ metadata:
 spec:
   containers:
   - name: workload-container
-    image: busybox
-    command: ["/bin/sh", "-c", "sleep $((RANDOM % 21 + 40))"]
+    image: severalnines/sysbench
+    command: ["/bin/sh", "-c"]
+    args:
+      - |
+        duration=$((RANDOM % 41 + 20));
+        echo "Running sysbench for $duration seconds...";
+        sysbench cpu --time=$duration run;
+        echo "Sysbench completed.";
   restartPolicy: Never

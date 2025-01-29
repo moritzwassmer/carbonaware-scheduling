@@ -40,12 +40,31 @@ stream_handler.setFormatter(formatter)
 write_logger.addHandler(file_handler)
 write_logger.addHandler(stream_handler)
 
+
+# Get k8s nodes in Cluster
+k8s_api = client.CoreV1Api()
+logging.info("Getting k8s nodes...")
+response = k8s_api.list_node()
+names = [item.metadata.name for item in response.items]
+logging.info("123452134: got names: "+str(names))
+
+if len(names) != 3:
+    logging.error("Too many or too few nodes in cluster to apply the mapping. Expected 3 nodes but got"+str(len(names)))
+
 # Node-region mapping
-NODE_REGION_MAPPING = {
+"""NODE_REGION_MAPPING = {
     STRATEGY+"-worker": "DE",
     STRATEGY+"-worker2": "ERCOT",
     STRATEGY+"-worker3": "NL",
+}"""
+NODE_REGION_MAPPING = {
+    names[0]: "DE",
+    names[1]: "ERCOT",
+    names[2]: "NL",
 }
+
+
+logging.info("12351241 \n"+str(response)+"\n")
 
 # Load workload template
 def load_workload_template():

@@ -5,6 +5,9 @@ metadata:
   labels:
     app: workload-simulation
 spec:
+  tolerations:
+  - key: "node-role.kubernetes.io/control-plane"
+    effect: "NoSchedule"
   containers:
   - name: workload-container
     image: severalnines/sysbench

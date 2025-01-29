@@ -46,6 +46,7 @@ k8s_api = client.CoreV1Api()
 logging.info("Getting k8s nodes...")
 response = k8s_api.list_node()
 names = [item.metadata.name for item in response.items]
+logging.info("Got nodes: "+str(names))
 
 if len(names) != 3:
     logging.error("Too many or too few nodes in cluster to apply the mapping. Expected 3 nodes but got"+str(len(names)))

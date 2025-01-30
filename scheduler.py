@@ -7,15 +7,9 @@ import kopf
 import logging
 from kubernetes import client, config
 import sys
-from datetime import datetime
-
-
 
 
 logging.info("Scheduler is starting...")
-# For debugging purposes
-current_time = datetime.now().strftime("%H:%M")
-logging.info(f"Current time: {current_time}")
 
 # Load Kubernetes config
 config.load_incluster_config()
@@ -40,7 +34,6 @@ stream_handler.setFormatter(formatter)
 write_logger.addHandler(file_handler)
 write_logger.addHandler(stream_handler)
 
-
 # Get k8s nodes in Cluster
 k8s_api = client.CoreV1Api()
 logging.info("Getting k8s nodes...")
@@ -63,11 +56,11 @@ def load_workload_template():
         return yaml.safe_load(file)
 
 # Fetch carbon intensity data
-def fetch_carbon_intensity():  # e.g., {"DE": 476.86, "ERCOT": 288.29, "NL": 266.5}
+def fetch_carbon_intensity():  
     try:
         response = requests.get(CARBON_API_URL, timeout=10)
         response.raise_for_status()
-        return response.json()
+        return response.json() # e.g., {"DE": 476.86, "ERCOT": 288.29, "NL": 266.5}
     except requests.RequestException as e:
         logging.error(f"Error fetching carbon intensity: {e}")
         return None
@@ -83,6 +76,7 @@ def select_best_node(carbon_data):
             best_node = node
     return best_node, lowest_intensity
 
+# select node randomly
 def random_placement(carbon_data):
     node = random.choice(list(NODE_REGION_MAPPING.keys()))
     region = NODE_REGION_MAPPING[node]
@@ -111,14 +105,16 @@ def schedule_workload(api, pod_spec, node, intensity, region):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    write_logger.info(f"Pod: {unique_name}, Node: {node}, Intensity: {intensity}, Region: {region}, Type: Planned")
+    log_pod_placement(unique_name, node, intensity, region, "Planned")
 
-# Monitor pod placement
+# Monitor actual pod placement
 def monitor_pod_placement(workload_name, node_name):
-    #logging.info("124421415241213")
     region = NODE_REGION_MAPPING.get(node_name, "Unknown")
     intensity = fetch_carbon_intensity().get(region, float("inf"))
-    write_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: Actual")
+    log_pod_placement(workload_name, node_name, intensity, region, "Actual")
+
+def log_pod_placement(workload_name, node_name, intensity, region, type):
+    write_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: {type}")
 
 # Main loop
 def main():
@@ -153,23 +149,16 @@ def main():
         schedule_workload(api, pod_template, best_node, lowest_intensity, region)
         time.sleep(SCHEDULING_PERIOD)
 
-    # Wait for the last pod placement to occur, keep pod alive to allow log access
+    # Wait for the last pod placement to occur, keep pod alive for 1 hour to retrieve logs
     logging.info("All workloads scheduled. Waiting to allow log retrieval...")
-    time.sleep(3600)  # 1 hour
+    time.sleep(3600)
     sys.exit(0)
 
-# Kopf handler for observing pod placement
+# Kopf handler for observing actual pod placement
 @kopf.on.create("", "v1", "pods")
-def observe_placement(name, namespace, labels, logger, **kwargs): # TODO Issue here
-
-    # logging.info("124421415241213,\n"+str(kwargs)+"\n")
-
-    # Extract the workload name
+def observe_placement(name, namespace, labels, logger, **kwargs): 
     workload_name = kwargs.get('body', {}).get('metadata', {}).get('name', None)
-    
-    # Extract the nodeName
     node_name = kwargs.get('body', {}).get('spec', {}).get('nodeName', None)
-
     if workload_name and node_name:
         logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
     else:
@@ -180,7 +169,7 @@ def observe_placement(name, namespace, labels, logger, **kwargs): # TODO Issue h
 # Kopf resume/create handler
 @kopf.on.resume("", "v1", "pods")
 @kopf.on.create("", "v1", "pods")
-def on_pod_resume(name, namespace, labels, logger, **kwargs):
-    # Check if this is the scheduler pod
+def on_scheduler_alive(name, namespace, labels, logger, **kwargs):
+    # Check if scheduler pod has started, then run the experiments
     if labels.get("application") == "scheduler-operator":
         main()

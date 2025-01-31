@@ -11,9 +11,5 @@ COPY workload.yaml .
 # Install required Python libraries
 RUN pip install kubernetes kopf requests pyyaml
 
-# Expose the port if needed (for debugging or future extensions)
-# EXPOSE 8080
-
 # Set the default command to run the scheduler
 CMD kopf run /app/scheduler.py --verbose
-#CMD python /app/scheduler.py

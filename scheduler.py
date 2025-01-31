@@ -37,6 +37,22 @@ NODE_REGION_MAPPING = {
     names[2]: "NL",
 }
 
+# Create loggers for carbonaware and normal strategy
+def create_logger(strategy):
+    # Create a logger that writes results
+    write_logger = logging.getLogger(strategy)
+    write_logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(strategy+"_strategy.log")
+    stream_handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    write_logger.addHandler(file_handler)
+    write_logger.addHandler(stream_handler)
+    return write_logger
+carbonaware_logger = create_logger("carbonaware")
+normal_logger = create_logger("normal")
+
 # Load workload template
 def load_workload_template():
     with open(WORKLOAD_TEMPLATE, "r") as file:
@@ -71,9 +87,10 @@ def random_placement(carbon_data):
     return node, intensity
 
 # Schedule workload to Kubernetes
-def schedule_workload(api, pod_spec, node, intensity, region, write_logger):
+def schedule_workload(api, pod_spec, node, intensity, region, strategy):
     unique_name = f"workload-{int(time.time())}"
     pod_spec["metadata"]["name"] = unique_name
+    pod_spec["metadata"]["labels"]["strategy"] = strategy  # Add label
     pod_spec["spec"]["affinity"] = {
         "nodeAffinity": {
             "requiredDuringSchedulingIgnoredDuringExecution": {
@@ -92,28 +109,17 @@ def schedule_workload(api, pod_spec, node, intensity, region, write_logger):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    log_pod_placement(unique_name, node, intensity, region, "Planned", write_logger)
+    log_pod_placement(unique_name, node, intensity, region, "Planned", strategy)
 
-def log_pod_placement(workload_name, node_name, intensity, region, type, write_logger):
-    write_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: {type}")
-
-def create_logger(strategy):
-    # Create a logger that writes results
-    write_logger = logging.getLogger("scheduler")
-    write_logger.setLevel(logging.INFO)
-    file_handler = logging.FileHandler(strategy+"_strategy.log")
-    stream_handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    file_handler.setFormatter(formatter)
-    stream_handler.setFormatter(formatter)
-    write_logger.addHandler(file_handler)
-    write_logger.addHandler(stream_handler)
-    return write_logger
-
+def log_pod_placement(workload_name, node_name, intensity, region, type, strategy):
+    if strategy == "carbonaware":
+        carbonaware_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: {type}")
+    elif strategy == "normal":
+        normal_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: {type}")
+    else:
+        logging.error("Invalid scheduling strategy. Skipping logging.")
 
 def run_experiment(api, strategy, pod_template):
-
-    write_logger = create_logger(strategy)
 
     for i in range(NUM_WORKLOADS):
         logging.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
@@ -141,7 +147,7 @@ def run_experiment(api, strategy, pod_template):
         # schedule workload
         region = NODE_REGION_MAPPING[node_selection]
         logging.info(f"Best node selected: {node_selection}")
-        schedule_workload(api, pod_template, node_selection, intensity, region, write_logger)
+        schedule_workload(api, pod_template, node_selection, intensity, region, strategy)
         time.sleep(SCHEDULING_PERIOD)
 
     # Wait for the last pod placement to occur
@@ -181,7 +187,11 @@ def observe_placement(name, namespace, labels, logger, **kwargs):
         logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
         region = NODE_REGION_MAPPING.get(node_name, "Unknown")
         intensity = fetch_carbon_intensity().get(region, float("inf"))
-        log_pod_placement(workload_name, node_name, intensity, region, "Actual")
+
+        # use logger with respective file handler according to strategy used
+        strategy = labels.get("strategy")
+        log_pod_placement(workload_name, node_name, intensity, region, "Actual", strategy) 
+
     else:
         logging.error("Could not extract workload name or node name")
 

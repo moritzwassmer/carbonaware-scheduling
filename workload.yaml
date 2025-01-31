@@ -4,6 +4,7 @@ metadata:
   name: simulated-workload
   labels:
     app: workload-simulation
+    strategy: Undefined # filled automatically by the scheduler
 spec:
   tolerations:
   - key: "node-role.kubernetes.io/control-plane"

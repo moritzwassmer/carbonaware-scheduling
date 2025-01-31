@@ -12,7 +12,7 @@ spec:
     imagePullPolicy: Always
     env:
     - name: NUM_WORKLOADS
-      value: "1"
+      value: "2"
     - name: WORKLOAD_SCHEDULING_PERIOD
       value: "10"
     - name: SCHEDULING_STRATEGY

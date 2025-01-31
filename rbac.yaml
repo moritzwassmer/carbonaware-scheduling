@@ -12,23 +12,26 @@ metadata:
 rules:
   # Framework: knowing which other operators are running (i.e. peering).
   - apiGroups: [kopf.dev]
-    resources: [clusterkopfpeerings, schedulers, kopfpeerings]
-    verbs: [get, list, watch, patch, create, update, delete]
+    resources: [clusterkopfpeerings]
+    verbs: [get, list, watch, patch]
   
   # Framework: runtime observation of namespaces & CRDs (addition/deletion).
   - apiGroups: [apiextensions.k8s.io]
     resources: [customresourcedefinitions]
     verbs: [get, list, watch]
+  - apiGroups: [""]
+    resources: [namespaces]
+    verbs: [list, watch]    
 
   # Framework: admission webhook configuration management.
   - apiGroups: [admissionregistration.k8s.io/v1]
     resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
-    verbs: [create, patch, delete]
+    verbs: [create, patch]
   - apiGroups: [admissionregistration.k8s.io/v1beta1]
     resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
-    verbs: [create, patch, delete]
+    verbs: [create, patch]
 
-  # ?
+  # Application
   - apiGroups: [""]  # Core API group
     resources: [namespaces, events, pods, pods/status, persistentvolumeclaims, nodes]
     verbs: [get, list, watch, create, update, patch, delete]
@@ -52,6 +55,10 @@ rules:
     verbs: [get, list, watch, patch, create, update, delete]
 
   # Framework: posting the events about the handlers progress/errors.
+  - apiGroups: [""]
+    resources: [events]
+    verbs: [create]
+    
   # Application: other resources it produces and manipulates.
   # Here, we create Jobs+PVCs+Pods, but we do not patch/update/delete them ever.
   # TODO: cleanup

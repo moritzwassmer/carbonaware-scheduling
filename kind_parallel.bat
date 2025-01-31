@@ -4,8 +4,8 @@ start kind.exe
 
 :: cleanup then create clusters
 kind delete clusters --all
-kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\cconf_carbonaware.yml --name carbonaware
-kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\cconf_normal.yml --name normal
+kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\kind_conf_3node_1.yml --name carbonaware
+kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\kind_conf_3node_2.yml --name normal
 
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 

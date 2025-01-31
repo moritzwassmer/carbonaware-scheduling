@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: scheduler-operator
+  labels:
+    application: scheduler-operator
+spec:
+  serviceAccountName: scheduler-account
+  containers:
+  - name: the-only-one
+    image: mowassmer/task4:1.0.2
+    imagePullPolicy: Always
+    env:
+    - name: NUM_WORKLOADS
+      value: "180"
+    - name: WORKLOAD_SCHEDULING_PERIOD
+      value: "10"
+    - name: SCHEDULING_STRATEGY
+      value: "both"

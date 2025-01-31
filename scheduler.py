@@ -21,18 +21,7 @@ WORKLOAD_TEMPLATE = "workload.yaml"
 # Get environment variables
 NUM_WORKLOADS = int(os.getenv("NUM_WORKLOADS", 2))  # TODO set to 180 later
 SCHEDULING_PERIOD = int(os.getenv("WORKLOAD_SCHEDULING_PERIOD", 10))
-STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "carbonaware"))
-
-# Create a logger that writes results
-write_logger = logging.getLogger("scheduler")
-write_logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler(STRATEGY+"_strategy.log")
-stream_handler = logging.StreamHandler(sys.stdout)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(formatter)
-stream_handler.setFormatter(formatter)
-write_logger.addHandler(file_handler)
-write_logger.addHandler(stream_handler)
+STRATEGY = str(os.getenv("SCHEDULING_STRATEGY", "both"))
 
 # Get k8s nodes in Cluster
 k8s_api = client.CoreV1Api()
@@ -40,10 +29,8 @@ logging.info("Getting k8s nodes...")
 response = k8s_api.list_node()
 names = [item.metadata.name for item in response.items]
 logging.info("Got nodes: "+str(names))
-
 if len(names) != 3:
     logging.error("Too many or too few nodes in cluster to apply the mapping. Expected 3 nodes but got"+str(len(names)))
-
 NODE_REGION_MAPPING = {
     names[0]: "DE",
     names[1]: "ERCOT",
@@ -84,7 +71,7 @@ def random_placement(carbon_data):
     return node, intensity
 
 # Schedule workload to Kubernetes
-def schedule_workload(api, pod_spec, node, intensity, region):
+def schedule_workload(api, pod_spec, node, intensity, region, write_logger):
     unique_name = f"workload-{int(time.time())}"
     pod_spec["metadata"]["name"] = unique_name
     pod_spec["spec"]["affinity"] = {
@@ -105,16 +92,62 @@ def schedule_workload(api, pod_spec, node, intensity, region):
         }
     }
     api.create_namespaced_pod(namespace="default", body=pod_spec)
-    log_pod_placement(unique_name, node, intensity, region, "Planned")
+    log_pod_placement(unique_name, node, intensity, region, "Planned", write_logger)
 
-# Monitor actual pod placement
-def monitor_pod_placement(workload_name, node_name):
-    region = NODE_REGION_MAPPING.get(node_name, "Unknown")
-    intensity = fetch_carbon_intensity().get(region, float("inf"))
-    log_pod_placement(workload_name, node_name, intensity, region, "Actual")
-
-def log_pod_placement(workload_name, node_name, intensity, region, type):
+def log_pod_placement(workload_name, node_name, intensity, region, type, write_logger):
     write_logger.info(f"Pod: {workload_name}, Node: {node_name}, Intensity: {intensity}, Region: {region}, Type: {type}")
+
+def create_logger(strategy):
+    # Create a logger that writes results
+    write_logger = logging.getLogger("scheduler")
+    write_logger.setLevel(logging.INFO)
+    file_handler = logging.FileHandler(strategy+"_strategy.log")
+    stream_handler = logging.StreamHandler(sys.stdout)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    file_handler.setFormatter(formatter)
+    stream_handler.setFormatter(formatter)
+    write_logger.addHandler(file_handler)
+    write_logger.addHandler(stream_handler)
+    return write_logger
+
+
+def run_experiment(api, strategy, pod_template):
+
+    write_logger = create_logger(strategy)
+
+    for i in range(NUM_WORKLOADS):
+        logging.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
+
+        # Fetch carbon intensity data
+        carbon_data = fetch_carbon_intensity()
+        if not carbon_data:
+            logging.error("Skipping scheduling due to missing carbon intensity data.")
+            time.sleep(SCHEDULING_PERIOD)
+            continue
+
+        # Pick node according to strategy
+        if strategy == "carbonaware":
+            node_selection, intensity = select_best_node(carbon_data)
+        elif strategy == "normal":
+            node_selection, intensity = random_placement(carbon_data)
+        else:
+            logging.error("Invalid scheduling strategy. Skipping scheduling.")
+            time.sleep(SCHEDULING_PERIOD)
+        if not node_selection:
+            logging.error("No suitable node found. Skipping scheduling.")
+            time.sleep(SCHEDULING_PERIOD)
+            continue
+        
+        # schedule workload
+        region = NODE_REGION_MAPPING[node_selection]
+        logging.info(f"Best node selected: {node_selection}")
+        schedule_workload(api, pod_template, node_selection, intensity, region, write_logger)
+        time.sleep(SCHEDULING_PERIOD)
+
+    # Wait for the last pod placement to occur, keep pod alive for 1 hour to retrieve logs
+    logging.info("All workloads scheduled. Waiting to allow log retrieval...")
+    time.sleep(60)
+
 
 # Main loop
 def main():
@@ -122,34 +155,19 @@ def main():
     api = client.CoreV1Api()
     pod_template = load_workload_template()
 
-    for i in range(NUM_WORKLOADS):
-        logging.info(f"Scheduling workload {i + 1}/{NUM_WORKLOADS}")
-        carbon_data = fetch_carbon_intensity()
-        if not carbon_data:
-            logging.error("Skipping scheduling due to missing carbon intensity data.")
-            time.sleep(SCHEDULING_PERIOD)
-            continue
+    # run experiment based on strategy selection
+    if STRATEGY == "carbonaware":
+        run_experiment(api, "carbonaware", pod_template)
+    elif STRATEGY == "normal":
+        run_experiment(api, "normal", pod_template)
+    elif STRATEGY == "both":
+        for strategy in ["carbonaware", "normal"]:
+            run_experiment(api, strategy, pod_template)
+    else:
+        logging.error("Invalid scheduling strategy. Exiting.")
+        sys.exit(1)
         
-        # Pick node according to strategy
-        if STRATEGY == "carbonaware":
-            best_node, lowest_intensity = select_best_node(carbon_data)
-        elif STRATEGY == "normal":
-            best_node, lowest_intensity = random_placement(carbon_data)
-        else:
-            logging.error("Invalid scheduling strategy. Skipping scheduling.")
-            time.sleep(SCHEDULING_PERIOD)
-        if not best_node:
-            logging.error("No suitable node found. Skipping scheduling.")
-            time.sleep(SCHEDULING_PERIOD)
-            continue
-        
-        # schedule workload
-        region = NODE_REGION_MAPPING[best_node]
-        logging.info(f"Best node selected: {best_node}")
-        schedule_workload(api, pod_template, best_node, lowest_intensity, region)
-        time.sleep(SCHEDULING_PERIOD)
-
-    # Wait for the last pod placement to occur, keep pod alive for 1 hour to retrieve logs
+    
     logging.info("All workloads scheduled. Waiting to allow log retrieval...")
     time.sleep(3600)
     sys.exit(0)
@@ -161,10 +179,11 @@ def observe_placement(name, namespace, labels, logger, **kwargs):
     node_name = kwargs.get('body', {}).get('spec', {}).get('nodeName', None)
     if workload_name and node_name:
         logging.info(f"Workload Name: {workload_name}, Node Name: {node_name}")
+        region = NODE_REGION_MAPPING.get(node_name, "Unknown")
+        intensity = fetch_carbon_intensity().get(region, float("inf"))
+        log_pod_placement(workload_name, node_name, intensity, region, "Actual")
     else:
         logging.error("Could not extract workload name or node name")
-        return
-    monitor_pod_placement(workload_name, node_name)
 
 # Kopf resume/create handler
 @kopf.on.resume("", "v1", "pods")

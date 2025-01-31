@@ -1,0 +1,21 @@
+• Since this is an artificial scenario, you can simply assume that each active pod 
+consumes 200W of electricity. As workloads run 40s on average and we have 
+180 workloads in total, the expected overall energy usage is40s * 180 * 200W 
+= 400 Wh. What is the carbon footprint? 
+
+
+
+• Think about suitable ways for interpreting the recorded information and 
+comparing them against each other (e.g. rank nodes based on carbon intensity 
+forecasts and compute a histogram; estimate the normalized savings in carbon 
+intensity, etc.). How did the two strategies perform? 
+
+
+
+• Have there been situations where a Pod was not placed as intended? If so, what 
+might be the reasons? If not, is this even possible? 
+In our Implementation we used 
+
+
+• Think about applying this in practice: What might go wrong, what are things 
+we did not take into consideration? 

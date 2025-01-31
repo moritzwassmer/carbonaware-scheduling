@@ -200,5 +200,5 @@ def observe_placement(name, namespace, labels, logger, **kwargs):
 @kopf.on.create("", "v1", "pods")
 def on_scheduler_alive(name, namespace, labels, logger, **kwargs):
     # Check if scheduler pod has started, then run the experiments
-    if labels.get("application") == "scheduler-operator":
+    if labels.get("application") == "scheduler":
         main()

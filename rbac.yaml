@@ -31,10 +31,11 @@ rules:
     resources: [validatingwebhookconfigurations, mutatingwebhookconfigurations]
     verbs: [create, patch]
 
-  # Application
+  # Scheduler:
   - apiGroups: [""]  # Core API group
-    resources: [namespaces, events, pods, pods/status, nodes]
-    verbs: [get, list, watch, create, update, patch, delete]
+    resources: [pods, pods/status, nodes, events]
+    verbs: [get, list, watch, create, patch, delete, update]
+
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

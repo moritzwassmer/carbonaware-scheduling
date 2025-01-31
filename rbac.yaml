@@ -33,25 +33,8 @@ rules:
 
   # Application
   - apiGroups: [""]  # Core API group
-    resources: [namespaces, events, pods, pods/status, persistentvolumeclaims, nodes]
+    resources: [namespaces, events, pods, pods/status, nodes]
     verbs: [get, list, watch, create, update, patch, delete]
-  - apiGroups: [extensions]
-    resources: [jobs]
-    verbs: [get, list, watch, create, update, delete]
-  - apiGroups: [batch, extensions]
-    resources: [jobs]
-    verbs: [get, list, watch, create, update, delete]
-
-  # Application: other resources it produces and manipulates.
-  # Here, we create Jobs+PVCs+Pods, but we do not patch/update/delete them ever.
-  # TODO: cleanup
-  - apiGroups: [""]  # Core API group
-    resources: [events, pods, pods/status, persistentvolumeclaims]
-    verbs: [get, list, watch, create, update, patch, delete]
-
-  - apiGroups: [batch, extensions]
-    resources: [jobs]
-    verbs: [get, list, watch, create, update, delete]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1

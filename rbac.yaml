@@ -55,22 +55,6 @@ rules:
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  namespace: "default"
-  name: scheduler-role-namespaced
-rules:
-  # Framework: knowing which other operators are running (i.e. peering).
-  - apiGroups: [kopf.dev]
-    resources: [kopfpeerings]
-    verbs: [list, watch, patch, get]
-
-  # Framework: posting the events about the handlers progress/errors.
-  - apiGroups: [""]
-    resources: [events]
-    verbs: [create]
----
-apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: scheduler-rolebinding-cluster
@@ -82,16 +66,3 @@ subjects:
   - kind: ServiceAccount
     name: scheduler-account
     namespace: "default"
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  namespace: "default"
-  name: scheduler-rolebinding-namespaced
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: scheduler-role-namespaced
-subjects:
-  - kind: ServiceAccount
-    name: scheduler-account

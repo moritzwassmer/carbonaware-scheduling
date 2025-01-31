@@ -144,9 +144,9 @@ def run_experiment(api, strategy, pod_template):
         schedule_workload(api, pod_template, node_selection, intensity, region, write_logger)
         time.sleep(SCHEDULING_PERIOD)
 
-    # Wait for the last pod placement to occur, keep pod alive for 1 hour to retrieve logs
+    # Wait for the last pod placement to occur
     logging.info("All workloads scheduled. Waiting to allow log retrieval...")
-    time.sleep(60)
+    time.sleep(70)
 
 
 # Main loop

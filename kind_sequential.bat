@@ -15,8 +15,8 @@ kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deploy
 
 :: only when necessary
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
-kubectl cp scheduler-operator:/app/normal_strategy.log results/normal_strategy.log
-kubectl cp scheduler-operator:/app/carbonaware_strategy.log results/carbonaware_strategy.log
+kubectl cp scheduler:/app/normal_strategy.log results/normal_strategy.log
+kubectl cp scheduler:/app/carbonaware_strategy.log results/carbonaware_strategy.log
 
 :: other
 kubectl exec --stdin --tty shell-demo -- /bin/bash :: ssh

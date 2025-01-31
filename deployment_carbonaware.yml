@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: scheduler-operator
+  name: scheduler
   labels:
-    application: scheduler-operator
+    application: scheduler
 spec:
   serviceAccountName: scheduler-account
   containers:

@@ -19,8 +19,8 @@ kubectl config use-context kind-normal
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment_normal.yml
 
-:: only when necessary
 
+:: only when necessary
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 kubectl cp scheduler:/app/normal_strategy.log results/normal_strategy.log
 kubectl config use-context kind-carbonaware

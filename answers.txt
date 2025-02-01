@@ -3,7 +3,14 @@ consumes 200W of electricity. As workloads run 40s on average and we have
 180 workloads in total, the expected overall energy usage is40s * 180 * 200W 
 = 400 Wh. What is the carbon footprint? 
 
+Assuming the mentioned "intensity" is defined as g CO2eq/kWh (since not explicitely specified) the avg. carbon footprint is:
 
+* Energy consumption: 400 Wh = 0.4 kWh
+* avg normal strategy intensity = 300
+* avg carbonaware strategy intensity = 200
+
+avg. Footprint normal: 0.4 kWh * 300 = 
+avg. Footprint carvon: 0.4 kWh * 200 = 
 
 • Think about suitable ways for interpreting the recorded information and 
 comparing them against each other (e.g. rank nodes based on carbon intensity 

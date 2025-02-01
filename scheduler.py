@@ -151,7 +151,7 @@ def run_experiment(api, strategy, pod_template):
         time.sleep(SCHEDULING_PERIOD)
 
     # Wait for the last pod placement to occur
-    logging.info("All workloads scheduled. Waiting to allow log retrieval...")
+    logging.info("All workloads scheduled. Waiting to ensure all workloads have finished...")
     time.sleep(70)
 
 

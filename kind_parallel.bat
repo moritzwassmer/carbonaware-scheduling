@@ -12,12 +12,12 @@ cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 :: Carbonaware execution
 kubectl config use-context kind-carbonaware
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
-kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment_carbonaware.yml
+kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment_carbonaware.yaml
 
 :: Normal execution
 kubectl config use-context kind-normal
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
-kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment_normal.yml
+kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment_normal.yaml
 
 
 :: only when necessary

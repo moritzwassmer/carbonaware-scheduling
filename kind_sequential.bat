@@ -11,7 +11,7 @@ cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
 :: Experiment execution
 kubectl config use-context kind-cluster
 kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
-kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment.yml
+kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment.yaml
 
 :: only when necessary
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4

@@ -157,9 +157,10 @@ def run_experiment(api, strategy, pod_template):
 
 # Main loop
 def main():
-    time.sleep(10)
     api = client.CoreV1Api()
     pod_template = load_workload_template()
+
+    time.sleep(60) # wait to ensure everything is ready
 
     # run experiment based on strategy selection
     if STRATEGY == "carbonaware":

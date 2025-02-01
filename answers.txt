@@ -1,59 +1,92 @@
 General Note: We used 3 nodes including the control plane, but allowed the control plane to work on workloads as well.
 
+
+
 1) Since this is an artificial scenario, you can simply assume that each active pod 
 consumes 200W of electricity. As workloads run 40s on average and we have 
 180 workloads in total, the expected overall energy usage is40s * 180 * 200W 
 = 400 Wh. What is the carbon footprint? 
 
-Assuming the mentioned "intensity" is defined as g CO2eq/kWh (since not explicitely specified) the avg. carbon footprint is:
-Energy consumption: 400 Wh = 0.4 kWh
-avg. Footprint normal: 0.4 kWh * 290.72 g CO2eq/kWh = 116.29 g C02eg
-avg. Footprint carbon: 0.4 kWh * 212.86 g CO2eq/kWh = 85.14 g C02eg
+    Assuming the mentioned "intensity" is defined as g CO2eq/kWh (since not explicitely specified) the avg. carbon footprint is:
+    Energy consumption: 400 Wh = 0.4 kWh
+    avg. Footprint normal: 0.4 kWh * 290.72 g CO2eq/kWh = 116.29 g C02eg
+    avg. Footprint carbon: 0.4 kWh * 212.86 g CO2eq/kWh = 85.14 g C02eg
+
+
 
 2) Think about suitable ways for interpreting the recorded information and 
 comparing them against each other (e.g. rank nodes based on carbon intensity 
 forecasts and compute a histogram; estimate the normalized savings in carbon 
 intensity, etc.). How did the two strategies perform? 
 
-Overall Savings Carbonaware vs Normal:
-    The carbonaware strategy saved 1-85.14/116.29 = 26.79% in terms of carbon footprint compared to the normal strategy
-    in the chosen time frame.
+    Overall Savings Carbonaware vs Normal:
+        The carbonaware strategy saved 1-85.14/116.29 = 26.79% in terms of carbon footprint compared to the normal strategy
+        in the chosen time frame.
 
-avg. Node Usage:
+    avg. Node Usage:
 
-    Normal strategy Node Usage in %:
+        Normal strategy Node Usage in %:
 
-        normal-control-plane      36.111111
-        normal-worker2            35.000000
-        normal-worker             28.888889
+            normal-control-plane      36.111111
+            normal-worker2            35.000000
+            normal-worker             28.888889
 
-        The node usage reflects the strategies idea of distributing the workloads randomly to the nodes. All nodes are approximately used 
-        with the same frequency, accounting for random fluctuations.
+            The node usage reflects the strategies idea of distributing the workloads randomly to the nodes. All nodes are approximately used 
+            with the same frequency, accounting for random fluctuations.
 
-    Carbonaware strategy Node Usage in %:
+        Carbonaware strategy Node Usage in %:
 
-        carbonaware-worker2    67.777778
-        carbonaware-worker     32.222222
+            carbonaware-worker2    67.777778
+            carbonaware-worker     32.222222
 
-        The node usage reflects the strategies idea of distributing the workloads based on carbon intensity forecasts. Apparently 
-        the NL region seemed to have the lowest carbon intensity values in the selected time frame.
+            The node usage reflects the strategies idea of distributing the workloads based on carbon intensity forecasts. Apparently 
+            the NL region seemed to have the lowest carbon intensity values in the selected time frame.
 
- avg Carbon Intensity per node:
+    avg Carbon Intensity per node:
 
-    Normal strategy avg. Carbon Intenstiy:
-        normal-control-plane    333.999692
-        normal-worker           311.118654
-        normal-worker2          229.216349
+        Normal strategy avg. Carbon Intenstiy:
+            normal-control-plane    333.999692
+            normal-worker           311.118654
+            normal-worker2          229.216349
 
-    Carbonaware strategy avg. Carbon Intensity:
-        carbonaware-worker     265.671897
-        carbonaware-worker2    187.590082
+        Carbonaware strategy avg. Carbon Intensity:
+            carbonaware-worker     265.671897
+            carbonaware-worker2    187.590082
+
+    Normalized savings:
+
+    TODO
 
 
 3) Have there been situations where a Pod was not placed as intended? If so, what 
 might be the reasons? If not, is this even possible? 
-In our Implementation we used 
+
+    There were no misplacements in our experiments. We used the 
+    requiredDuringSchedulingIgnoredDuringExecution type Node affinity,
+    which means that the scheduler can't schedule the Pod 
+    unless the rule is met. Therefore, it can't be misplaced. 
+
+    In theory it can happen that the resources of the selected node are insufficient, 
+    especially when the scheduling frequency and workload volume is high.
+    That means that the scheduler might not be able to assign the workload to it spreferred pod. 
+    In that case it is likely that the pod is going to be in status 'Pending'
+    until a sufficient amount of resources is free again.
 
 
 4) Think about applying this in practice: What might go wrong, what are things 
 we did not take into consideration? 
+
+    -   Often businesses prefer lower costs over carbon footprint (trivial but reality)
+    -   In practice, workloads may have varying priorities, execution times, and resource requirements. 
+        Also many workloads need multiple pods that need to communicate with each other. if nodes are
+        distributed over large distances, latency could become become a performance bottleneck.
+    -   If scheduling frequency and workloads are high, queues for pod placement for nodes could get very big with
+        the strict scheduling strategy described in 3). By the time a pod is running, the carbon footprint could be changed.
+        Therefore the pod should be redistributed.
+    -   Nodes in our clusters could have different hardware configurations, affecting energy consumption and carbon intensity.
+    -   For some data intensive workloads it might be beneficial to execute them close to where the data should be stored, or 
+        close to where the data resides.
+    -   This task did also not consider any fault tolerance. It is also possible that pods fail.
+    -   Some workloads might have legal or regulatory constraints requiring them to run in specific geographical regions.
+    -   Carbon intensity forecasts might not always be accurate, especially in regions with volatile energy grids 
+        (e.g., high reliance on solar or wind energy). 

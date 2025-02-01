@@ -19,7 +19,7 @@ comparing them against each other (e.g. rank nodes based on carbon intensity
 forecasts and compute a histogram; estimate the normalized savings in carbon 
 intensity, etc.). How did the two strategies perform? 
 
-    Overall Savings Carbonaware vs Normal:
+    Overall Normalized Savings Carbonaware vs Normal:
         The carbonaware strategy saved 1-85.14/116.29 = 26.79% in terms of carbon footprint compared to the normal strategy
         in the chosen time frame.
 
@@ -52,10 +52,6 @@ intensity, etc.). How did the two strategies perform?
         Carbonaware strategy avg. Carbon Intensity:
             carbonaware-worker     265.671897
             carbonaware-worker2    187.590082
-
-    Normalized savings:
-
-    TODO
 
 
 3) Have there been situations where a Pod was not placed as intended? If so, what 

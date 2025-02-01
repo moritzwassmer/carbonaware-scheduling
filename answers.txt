@@ -1,4 +1,6 @@
-General Note: We used 3 nodes including the control plane, but allowed the control plane to work on workloads as well.
+General Note: 
+- We used 3 nodes including the control plane, but allowed the control plane to work on workloads as well.
+- For parallel execution the strategy in the deployment.yaml needs to be changed to 'both'
 
 
 

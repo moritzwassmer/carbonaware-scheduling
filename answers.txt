@@ -1,28 +1,59 @@
-• Since this is an artificial scenario, you can simply assume that each active pod 
+General Note: We used 3 nodes including the control plane, but allowed the control plane to work on workloads as well.
+
+1) Since this is an artificial scenario, you can simply assume that each active pod 
 consumes 200W of electricity. As workloads run 40s on average and we have 
 180 workloads in total, the expected overall energy usage is40s * 180 * 200W 
 = 400 Wh. What is the carbon footprint? 
 
 Assuming the mentioned "intensity" is defined as g CO2eq/kWh (since not explicitely specified) the avg. carbon footprint is:
+Energy consumption: 400 Wh = 0.4 kWh
+avg. Footprint normal: 0.4 kWh * 290.72 g CO2eq/kWh = 116.29 g C02eg
+avg. Footprint carbon: 0.4 kWh * 212.86 g CO2eq/kWh = 85.14 g C02eg
 
-* Energy consumption: 400 Wh = 0.4 kWh
-* avg normal strategy intensity = 300
-* avg carbonaware strategy intensity = 200
-
-avg. Footprint normal: 0.4 kWh * 300 = 
-avg. Footprint carvon: 0.4 kWh * 200 = 
-
-• Think about suitable ways for interpreting the recorded information and 
+2) Think about suitable ways for interpreting the recorded information and 
 comparing them against each other (e.g. rank nodes based on carbon intensity 
 forecasts and compute a histogram; estimate the normalized savings in carbon 
 intensity, etc.). How did the two strategies perform? 
 
+Overall Savings Carbonaware vs Normal:
+    The carbonaware strategy saved 1-85.14/116.29 = 26.79% in terms of carbon footprint compared to the normal strategy
+    in the chosen time frame.
+
+avg. Node Usage:
+
+    Normal strategy Node Usage in %:
+
+        normal-control-plane      36.111111
+        normal-worker2            35.000000
+        normal-worker             28.888889
+
+        The node usage reflects the strategies idea of distributing the workloads randomly to the nodes. All nodes are approximately used 
+        with the same frequency, accounting for random fluctuations.
+
+    Carbonaware strategy Node Usage in %:
+
+        carbonaware-worker2    67.777778
+        carbonaware-worker     32.222222
+
+        The node usage reflects the strategies idea of distributing the workloads based on carbon intensity forecasts. Apparently 
+        the NL region seemed to have the lowest carbon intensity values in the selected time frame.
+
+ avg Carbon Intensity per node:
+
+    Normal strategy avg. Carbon Intenstiy:
+        normal-control-plane    333.999692
+        normal-worker           311.118654
+        normal-worker2          229.216349
+
+    Carbonaware strategy avg. Carbon Intensity:
+        carbonaware-worker     265.671897
+        carbonaware-worker2    187.590082
 
 
-• Have there been situations where a Pod was not placed as intended? If so, what 
+3) Have there been situations where a Pod was not placed as intended? If so, what 
 might be the reasons? If not, is this even possible? 
 In our Implementation we used 
 
 
-• Think about applying this in practice: What might go wrong, what are things 
+4) Think about applying this in practice: What might go wrong, what are things 
 we did not take into consideration? 

@@ -22,6 +22,7 @@ kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deploy
 
 :: only when necessary
 cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
+kubectl config use-context kind-normal
 kubectl cp scheduler:/app/normal_strategy.log results/normal_strategy.log
 kubectl config use-context kind-carbonaware
 kubectl cp scheduler:/app/carbonaware_strategy.log results/carbonaware_strategy.log

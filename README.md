@@ -14,7 +14,7 @@ For each scheduled workload:
 1. The scheduler fetches carbon intensity values from:
    - `https://wj38sqbq69.execute-api.us-east-1.amazonaws.com/Prod/row`
 2. It maps cluster nodes to fixed regions (`DE`, `ERCOT`, `NL`).
-3. It selects a target node according to the configured strategy.
+3. It selects a target node according to the configured strategy. If cabonaware it chooses the node based on the smallest carbon intensity of the region.
 4. It creates a pod from `workload.yaml` with required node affinity.
 5. It logs both:
    - `Planned` placement (decision time)
@@ -176,7 +176,3 @@ kubectl get pods -A -o wide --field-selector spec.nodeName=<node-name>
   - Re-apply `rbac.yaml` and verify service account usage in deployment.
 - `kubectl cp` fails:
   - Ensure the pod name matches the manifest (`scheduler` or `scheduler-operator`) for the chosen deployment.
-
-## License
-
-No license file is currently included in this repository.

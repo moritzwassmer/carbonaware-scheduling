@@ -1,22 +1,25 @@
+@echo off
+if "%REPO_ROOT%"=="" set "REPO_ROOT=C:\Users\morit\repos\carbonaware-scheduling"
+
 :: start kind
 cd C:\Users\morit\kind
 start kind.exe
 
 :: cleanup then create clusters
 kind delete clusters --all
-kind create cluster --config=C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\kind_conf_3node_1.yml --name cluster
+kind create cluster --config="%REPO_ROOT%\kind_conf_3node_1.yml" --name cluster
 
-cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
+cd /d "%REPO_ROOT%"
 
 :: Experiment execution
 kubectl config use-context kind-cluster
-kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\rbac.yaml
-kubectl apply -f C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4\deployment.yml
+kubectl apply -f "%REPO_ROOT%\rbac.yaml"
+kubectl apply -f "%REPO_ROOT%\deployment.yml"
 
 :: only when necessary
-cd C:\Users\morit\OneDrive\UNI\Master\WS24\CC\Assignments\4
-kubectl cp scheduler:/app/normal_strategy.log results/normal_strategy.log
-kubectl cp scheduler:/app/carbonaware_strategy.log results/carbonaware_strategy.log
+cd /d "%REPO_ROOT%"
+kubectl cp scheduler:/app/normal_strategy.log "%REPO_ROOT%\results\normal_strategy.log"
+kubectl cp scheduler:/app/carbonaware_strategy.log "%REPO_ROOT%\results\carbonaware_strategy.log"
 
 :: other
 kubectl exec --stdin --tty shell-demo -- /bin/bash :: ssh
